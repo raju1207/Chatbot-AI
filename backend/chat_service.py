@@ -10,8 +10,10 @@ It:
 """
 
 import os
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
+
 
 load_dotenv()
 
