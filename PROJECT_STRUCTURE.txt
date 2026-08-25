@@ -1,0 +1,70 @@
+Chatbot-AI/
+│
+├── backend/
+│   ├── app/
+│   │   ├── __init__.py
+│   │   ├── main.py
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── chat.py
+│   │   │   └── user.py
+│   │   ├── routes/
+│   │   │   ├── __init__.py
+│   │   │   ├── chat.py
+│   │   │   ├── auth.py
+│   │   │   ├── conversations.py
+│   │   │   └── uploads.py
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── llm_service.py
+│   │   │   ├── chat_service.py
+│   │   │   ├── auth_service.py
+│   │   │   ├── speech_service.py
+│   │   │   └── vision_service.py
+│   │   ├── utils/
+│   │   │   ├── __init__.py
+│   │   │   ├── security.py
+│   │   │   └── helpers.py
+│   │   └── middleware/
+│   │       └── __init__.py
+│   ├── tests/
+│   │   ├── __init__.py
+│   │   └── test_health.py
+│   ├── .env.example
+│   ├── requirements.txt
+│   └── Dockerfile
+│
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Sidebar.jsx
+│   │   │   ├── ChatWindow.jsx
+│   │   │   ├── MessageBubble.jsx
+│   │   │   ├── ChatInput.jsx
+│   │   │   ├── VoiceRecorder.jsx
+│   │   │   ├── ImageUploader.jsx
+│   │   │   └── ThemeToggle.jsx
+│   │   ├── pages/
+│   │   │   ├── ChatPage.jsx
+│   │   │   ├── LoginPage.jsx
+│   │   │   └── RegisterPage.jsx
+│   │   ├── services/api.js
+│   │   ├── context/
+│   │   │   ├── AuthContext.jsx
+│   │   │   └── ChatContext.jsx
+│   │   ├── hooks/useChat.js
+│   │   ├── styles/index.css
+│   │   ├── assets/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── .env.example
+│   ├── package.json
+│   ├── vite.config.js
+│   └── index.html
+│
+├── .gitignore
+├── README.md
+└── PROJECT_STRUCTURE.txt
