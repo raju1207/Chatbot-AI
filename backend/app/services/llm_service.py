@@ -1,46 +1,49 @@
-# OpenAI integration will be implemented here.
-from openai import AsyncOpenAI
+import httpx
 
 from app.config import settings
 
 
-client = AsyncOpenAI(
-    api_key=settings.OPENAI_API_KEY
-)
-
-
 SYSTEM_PROMPT = """
-You are Chatbot AI, a helpful, professional conversational AI assistant.
+You are Chatbot AI, a helpful and professional conversational AI assistant.
 
 Rules:
 - Give clear and useful responses.
-- Remember the context supplied from earlier messages.
-- Format technical answers clearly.
-- Use code blocks when appropriate.
-- Do not claim information that is not available in the conversation.
+- Remember previous conversation context.
+- Keep answers easy to understand.
+- Use Markdown when appropriate.
+- Use code blocks for programming examples.
 """
 
 
 async def generate_ai_response(messages: list[dict]) -> str:
-    if not settings.OPENAI_API_KEY:
-        raise ValueError("OPENAI_API_KEY is missing from .env")
-
-    conversation_text = []
+    ollama_messages = [
+        {
+            "role": "system",
+            "content": SYSTEM_PROMPT,
+        }
+    ]
 
     for message in messages:
-        role = message.get("role", "user")
-        content = message.get("content", "")
-
-        conversation_text.append(
-            f"{role.upper()}: {content}"
+        ollama_messages.append(
+            {
+                "role": message["role"],
+                "content": message["content"],
+            }
         )
 
-    prompt = "\n\n".join(conversation_text)
+    payload = {
+        "model": settings.OLLAMA_MODEL,
+        "messages": ollama_messages,
+        "stream": False,
+    }
 
-    response = await client.responses.create(
-        model=settings.OPENAI_MODEL,
-        instructions=SYSTEM_PROMPT,
-        input=prompt,
-    )
+    async with httpx.AsyncClient(timeout=120.0) as client:
+        response = await client.post(
+            f"{settings.OLLAMA_BASE_URL}/api/chat",
+            json=payload,
+        )
 
-    return response.output_text
+        response.raise_for_status()
+        data = response.json()
+
+    return data["message"]["content"]
