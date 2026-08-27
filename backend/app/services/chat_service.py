@@ -1,4 +1,5 @@
 # Chat orchestration and MongoDB persistence will be implemented here.
+
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -6,16 +7,29 @@ from app.database import (
     conversations_collection,
     messages_collection,
 )
+
 from app.services.llm_service import generate_ai_response
 
 
-async def create_conversation() -> str:
+def generate_title(message: str) -> str:
+    message = message.strip()
+
+    if len(message) <= 40:
+        return message
+
+    return message[:40] + "..."
+
+
+async def create_conversation(
+    first_message: str,
+) -> str:
+
     conversation_id = str(uuid4())
 
     await conversations_collection.insert_one(
         {
             "conversation_id": conversation_id,
-            "title": "New Chat",
+            "title": generate_title(first_message),
             "created_at": datetime.now(timezone.utc),
             "updated_at": datetime.now(timezone.utc),
         }
@@ -32,7 +46,9 @@ async def get_conversation_history(
     cursor = (
         messages_collection
         .find(
-            {"conversation_id": conversation_id},
+            {
+                "conversation_id": conversation_id
+            },
             {
                 "_id": 0,
                 "role": 1,
@@ -65,9 +81,10 @@ async def process_chat(
 ) -> dict:
 
     if not conversation_id:
-        conversation_id = await create_conversation()
+        conversation_id = await create_conversation(
+            message
+        )
 
-    # Save user message
     await messages_collection.insert_one(
         {
             "conversation_id": conversation_id,
@@ -77,16 +94,15 @@ async def process_chat(
         }
     )
 
-    # Read recent conversation history
     history = await get_conversation_history(
         conversation_id=conversation_id,
         limit=20,
     )
 
-    # Generate AI response
-    ai_response = await generate_ai_response(history)
+    ai_response = await generate_ai_response(
+        history
+    )
 
-    # Save assistant message
     await messages_collection.insert_one(
         {
             "conversation_id": conversation_id,
@@ -96,12 +112,15 @@ async def process_chat(
         }
     )
 
-    # Update conversation metadata
     await conversations_collection.update_one(
-        {"conversation_id": conversation_id},
+        {
+            "conversation_id": conversation_id
+        },
         {
             "$set": {
-                "updated_at": datetime.now(timezone.utc)
+                "updated_at": datetime.now(
+                    timezone.utc
+                )
             }
         },
     )

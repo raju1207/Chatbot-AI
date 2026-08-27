@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import settings
 from app.database import check_mongodb_connection
 from app.routes.chat import router as chat_router
+from app.routes.conversations import router as conversations_router
 
 
 app = FastAPI(
@@ -13,19 +13,31 @@ app = FastAPI(
 )
 
 
+# -----------------------------
+# CORS Configuration
+# -----------------------------
+
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        settings.FRONTEND_URL,
-        "http://localhost:5173",
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
+# -----------------------------
+# API Routes
+# -----------------------------
+
 app.include_router(chat_router)
+app.include_router(conversations_router)
 
 
 @app.get("/")
