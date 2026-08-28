@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.routes.auth import router as auth_router
 
 from app.database import check_mongodb_connection
 from app.routes.chat import router as chat_router
@@ -37,6 +38,7 @@ app.add_middleware(
 # API Routes
 # -----------------------------
 
+app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(conversations_router)
 app.include_router(uploads_router)

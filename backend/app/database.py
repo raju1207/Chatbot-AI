@@ -14,25 +14,41 @@ client = AsyncMongoClient(
 )
 
 
-database = client[settings.MONGO_DB_NAME]
+database = client[
+    settings.MONGO_DB_NAME
+]
 
 
-conversations_collection = database["conversations"]
+users_collection = database[
+    "users"
+]
 
-messages_collection = database["messages"]
+conversations_collection = database[
+    "conversations"
+]
+
+messages_collection = database[
+    "messages"
+]
 
 
 async def check_mongodb_connection():
     try:
-        await client.admin.command("ping")
+        await client.admin.command(
+            "ping"
+        )
 
-        print("MongoDB connected successfully")
+        print(
+            "MongoDB connected successfully"
+        )
 
         return True
 
     except Exception as error:
+        print(
+            "MongoDB connection failed:"
+        )
 
-        print("\nMongoDB connection failed:")
         print(error)
 
         return False
