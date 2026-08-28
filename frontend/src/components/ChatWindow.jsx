@@ -11,12 +11,12 @@ import ChatInput from "./ChatInput";
 export default function ChatWindow({
   messages,
   onSend,
+  onSendImage,
   onStop,
   onRegenerate,
   onOpenSidebar,
   loading,
 }) {
-
   const lastAssistantIndex =
     messages.reduce(
       (
@@ -24,7 +24,6 @@ export default function ChatWindow({
         message,
         index
       ) => {
-
         if (
           message.role ===
           "assistant"
@@ -41,14 +40,16 @@ export default function ChatWindow({
   return (
     <main className="chat-window">
 
+      {/* =========================
+          HEADER
+      ========================== */}
+
       <header className="chat-header">
 
         <button
           type="button"
           className="mobile-menu-button"
-          onClick={
-            onOpenSidebar
-          }
+          onClick={onOpenSidebar}
           aria-label="Open sidebar"
           title="Open sidebar"
         >
@@ -67,24 +68,28 @@ export default function ChatWindow({
         >
           Llama 3.2
 
-          <ChevronDown
-            size={14}
-          />
+          <ChevronDown size={14} />
         </button>
 
       </header>
 
 
+      {/* =========================
+          CHAT CONTENT
+      ========================== */}
+
       <section className="messages-area">
 
         {messages.length === 0 ? (
 
+          /* =========================
+             WELCOME SCREEN
+          ========================== */
+
           <div className="welcome-screen">
 
             <div className="welcome-logo">
-              <Sparkles
-                size={26}
-              />
+              <Sparkles size={26} />
             </div>
 
 
@@ -95,6 +100,7 @@ export default function ChatWindow({
 
             <p>
               Ask questions,
+              analyze images,
               learn something new,
               write code, or explore
               your ideas.
@@ -162,6 +168,10 @@ export default function ChatWindow({
 
         ) : (
 
+          /* =========================
+             CONVERSATION
+          ========================== */
+
           <div className="messages-container">
 
             {messages.map(
@@ -169,7 +179,6 @@ export default function ChatWindow({
                 message,
                 index
               ) => {
-
                 const isEmptyStreamingAssistant =
                   loading &&
                   index ===
@@ -179,6 +188,11 @@ export default function ChatWindow({
                   !message.content;
 
 
+                /*
+                  Do not render an empty
+                  assistant bubble while
+                  waiting for first token.
+                */
                 if (
                   isEmptyStreamingAssistant
                 ) {
@@ -196,6 +210,10 @@ export default function ChatWindow({
 
                     content={
                       message.content
+                    }
+
+                    imageUrl={
+                      message.imageUrl
                     }
 
                     isLastAssistant={
@@ -216,6 +234,10 @@ export default function ChatWindow({
             )}
 
 
+            {/* =========================
+                THINKING INDICATOR
+            ========================== */}
+
             {loading &&
               lastAssistantIndex >= 0 &&
               !messages[
@@ -225,16 +247,16 @@ export default function ChatWindow({
                 <div className="thinking-row">
 
                   <div className="message-avatar">
-                    <Sparkles
-                      size={18}
-                    />
+                    <Sparkles size={18} />
                   </div>
+
 
                   <div>
 
                     <div className="message-name">
                       Chatbot AI
                     </div>
+
 
                     <div className="thinking-animation">
                       <span />
@@ -255,18 +277,15 @@ export default function ChatWindow({
       </section>
 
 
+      {/* =========================
+          CHAT INPUT
+      ========================== */}
+
       <ChatInput
-        onSend={
-          onSend
-        }
-
-        onStop={
-          onStop
-        }
-
-        loading={
-          loading
-        }
+        onSend={onSend}
+        onSendImage={onSendImage}
+        onStop={onStop}
+        loading={loading}
       />
 
     </main>

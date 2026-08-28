@@ -7,6 +7,7 @@ class Settings(BaseSettings):
 
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "llama3.2:3b"
+    OLLAMA_VISION_MODEL: str = "gemma3:4b"
 
     DATABASE_URL: str = ""
     JWT_SECRET: str = "change-me"

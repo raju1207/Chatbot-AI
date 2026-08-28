@@ -1,68 +1,53 @@
-import {
-  useState,
-} from "react";
+import { useState } from "react";
 
-import ReactMarkdown from
-  "react-markdown";
-
-import remarkGfm from
-  "remark-gfm";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import {
   Bot,
-  User,
-  Copy,
   Check,
+  Copy,
   RotateCcw,
+  User,
 } from "lucide-react";
 
 
 export default function MessageBubble({
   role,
   content,
+  imageUrl,
   isLastAssistant,
   onRegenerate,
   loading,
 }) {
-
-  const [
-    copied,
-    setCopied,
-  ] = useState(false);
-
+  const [copied, setCopied] =
+    useState(false);
 
   const isAssistant =
     role === "assistant";
 
 
-  const handleCopy =
-    async () => {
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard
+        .writeText(content);
 
-      try {
+      setCopied(true);
 
-        await navigator.clipboard
-          .writeText(content);
+      setTimeout(
+        () => {
+          setCopied(false);
+        },
+        1500
+      );
 
-        setCopied(true);
-
-
-        setTimeout(
-          () => {
-            setCopied(false);
-          },
-          1500
-        );
-
-      } catch (error) {
-
-        console.error(
-          "Copy failed:",
-          error
-        );
-
-      }
-
-    };
+    } catch (error) {
+      console.error(
+        "Copy failed:",
+        error
+      );
+    }
+  };
 
 
   return (
@@ -88,16 +73,23 @@ export default function MessageBubble({
       <div className="message-main">
 
         <div className="message-name">
-
           {isAssistant
             ? "Chatbot AI"
             : "You"}
-
         </div>
 
 
-        <div className="message-content">
+        {imageUrl && (
+          <div className="message-image">
+            <img
+              src={imageUrl}
+              alt="Uploaded"
+            />
+          </div>
+        )}
 
+
+        <div className="message-content">
           <ReactMarkdown
             remarkPlugins={[
               remarkGfm
@@ -105,64 +97,58 @@ export default function MessageBubble({
           >
             {content}
           </ReactMarkdown>
-
         </div>
 
 
         {isAssistant &&
-         content && (
+          content && (
 
-          <div className="message-actions">
-
-            <button
-              className="message-action-button"
-              onClick={handleCopy}
-              title="Copy response"
-            >
-
-              {copied ? (
-                <Check size={15} />
-              ) : (
-                <Copy size={15} />
-              )}
-
-              <span>
-                {copied
-                  ? "Copied"
-                  : "Copy"}
-              </span>
-
-            </button>
-
-
-            {isLastAssistant && (
+            <div className="message-actions">
 
               <button
+                type="button"
                 className="message-action-button"
                 onClick={
-                  onRegenerate
+                  handleCopy
                 }
-                disabled={
-                  loading
-                }
-                title="Regenerate response"
               >
-
-                <RotateCcw
-                  size={15}
-                />
+                {copied ? (
+                  <Check size={15} />
+                ) : (
+                  <Copy size={15} />
+                )}
 
                 <span>
-                  Regenerate
+                  {copied
+                    ? "Copied"
+                    : "Copy"}
                 </span>
-
               </button>
 
-            )}
 
-          </div>
+              {isLastAssistant && (
+                <button
+                  type="button"
+                  className="message-action-button"
+                  onClick={
+                    onRegenerate
+                  }
+                  disabled={
+                    loading
+                  }
+                >
+                  <RotateCcw
+                    size={15}
+                  />
 
-        )}
+                  <span>
+                    Regenerate
+                  </span>
+                </button>
+              )}
+
+            </div>
+          )}
 
       </div>
 

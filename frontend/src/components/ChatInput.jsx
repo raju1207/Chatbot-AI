@@ -1,103 +1,163 @@
 import {
+  useEffect,
   useRef,
   useState,
 } from "react";
 
 import {
   ArrowUp,
-  Paperclip,
   Mic,
   Square,
+  X,
 } from "lucide-react";
+
+import ImageUploader from "./ImageUploader";
 
 
 export default function ChatInput({
   onSend,
+  onSendImage,
   onStop,
   loading,
 }) {
+  const [message, setMessage] =
+    useState("");
 
-  const [
-    message,
-    setMessage,
-  ] = useState("");
+  const [image, setImage] =
+    useState(null);
 
+  const [previewUrl, setPreviewUrl] =
+    useState(null);
 
   const textareaRef =
     useRef(null);
 
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(
+          previewUrl
+        );
+      }
+    };
+  }, [previewUrl]);
 
-    const text =
-      message.trim();
 
+  const handleImageSelect = (file) => {
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ];
 
     if (
-      !text ||
-      loading
+      !allowedTypes.includes(
+        file.type
+      )
     ) {
+      alert(
+        "Only JPG, PNG and WEBP images are supported."
+      );
+
       return;
     }
 
-
-    onSend(text);
-
-    setMessage("");
-
-
     if (
-      textareaRef.current
+      file.size >
+      10 * 1024 * 1024
     ) {
+      alert(
+        "Image must be smaller than 10 MB."
+      );
 
-      textareaRef.current
-        .style.height =
-          "auto";
-
+      return;
     }
 
+    if (previewUrl) {
+      URL.revokeObjectURL(
+        previewUrl
+      );
+    }
+
+    setImage(file);
+
+    setPreviewUrl(
+      URL.createObjectURL(file)
+    );
   };
 
 
-  const handleChange =
-    (event) => {
+  const removeImage = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(
+        previewUrl
+      );
+    }
 
-      setMessage(
-        event.target.value
+    setImage(null);
+    setPreviewUrl(null);
+  };
+
+
+  const handleSubmit = () => {
+    const text =
+      message.trim();
+
+    if (loading) return;
+
+    if (!text && !image) {
+      return;
+    }
+
+    if (image) {
+      onSendImage(
+        text ||
+          "Please describe this image.",
+        image,
+        previewUrl
       );
 
+      setImage(null);
+      setPreviewUrl(null);
+    } else {
+      onSend(text);
+    }
 
-      event.target
-        .style.height =
-          "auto";
+    setMessage("");
 
-
-      event.target
-        .style.height =
-          `${Math.min(
-            event.target
-              .scrollHeight,
-            180
-          )}px`;
-
-    };
+    if (textareaRef.current) {
+      textareaRef.current.style.height =
+        "auto";
+    }
+  };
 
 
-  const handleKeyDown =
-    (event) => {
+  const handleChange = (event) => {
+    setMessage(
+      event.target.value
+    );
 
-      if (
-        event.key === "Enter" &&
-        !event.shiftKey
-      ) {
+    event.target.style.height =
+      "auto";
 
-        event.preventDefault();
+    event.target.style.height =
+      `${Math.min(
+        event.target.scrollHeight,
+        180
+      )}px`;
+  };
 
-        handleSubmit();
 
-      }
-
-    };
+  const handleKeyDown = (event) => {
+    if (
+      event.key === "Enter" &&
+      !event.shiftKey
+    ) {
+      event.preventDefault();
+      handleSubmit();
+    }
+  };
 
 
   return (
@@ -105,17 +165,50 @@ export default function ChatInput({
 
       <div className="composer">
 
+        {previewUrl && (
+          <div className="image-preview-container">
+
+            <div className="image-preview">
+
+              <img
+                src={previewUrl}
+                alt="Selected"
+              />
+
+              <button
+                type="button"
+                className="remove-image-button"
+                onClick={
+                  removeImage
+                }
+                disabled={
+                  loading
+                }
+                title="Remove image"
+              >
+                <X size={14} />
+              </button>
+
+            </div>
+
+            <div className="image-preview-name">
+              {image?.name}
+            </div>
+
+          </div>
+        )}
+
+
         <textarea
           ref={textareaRef}
           value={message}
-          onChange={
-            handleChange
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          placeholder={
+            image
+              ? "Ask something about this image..."
+              : "How can I help you today?"
           }
-          onKeyDown={
-            handleKeyDown
-          }
-          placeholder=
-            "How can I help you today?"
           rows={1}
           disabled={loading}
         />
@@ -125,21 +218,20 @@ export default function ChatInput({
 
           <div className="composer-tools">
 
-            <button
-              type="button"
-              className="tool-button"
-              disabled
-            >
-              <Paperclip
-                size={19}
-              />
-            </button>
-
+            <ImageUploader
+              onSelect={
+                handleImageSelect
+              }
+              disabled={
+                loading
+              }
+            />
 
             <button
               type="button"
               className="tool-button"
               disabled
+              title="Voice coming later"
             >
               <Mic size={19} />
             </button>
@@ -148,24 +240,18 @@ export default function ChatInput({
 
 
           {loading ? (
-
             <button
               type="button"
-              className=
-                "send-button stop-button"
+              className="send-button stop-button"
               onClick={onStop}
               title="Stop generation"
             >
-
               <Square
                 size={14}
                 fill="currentColor"
               />
-
             </button>
-
           ) : (
-
             <button
               type="button"
               className="send-button"
@@ -173,16 +259,12 @@ export default function ChatInput({
                 handleSubmit
               }
               disabled={
-                !message.trim()
+                !message.trim() &&
+                !image
               }
             >
-
-              <ArrowUp
-                size={19}
-              />
-
+              <ArrowUp size={19} />
             </button>
-
           )}
 
         </div>

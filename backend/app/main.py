@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import check_mongodb_connection
 from app.routes.chat import router as chat_router
 from app.routes.conversations import router as conversations_router
+from app.routes.uploads import router as uploads_router
 
 
 app = FastAPI(
@@ -38,7 +39,12 @@ app.add_middleware(
 
 app.include_router(chat_router)
 app.include_router(conversations_router)
+app.include_router(uploads_router)
 
+
+# -----------------------------
+# Root Route
+# -----------------------------
 
 @app.get("/")
 async def root():
@@ -47,10 +53,16 @@ async def root():
     }
 
 
+# -----------------------------
+# Health Check
+# -----------------------------
+
 @app.get("/health")
 async def health():
 
-    mongodb_connected = await check_mongodb_connection()
+    mongodb_connected = (
+        await check_mongodb_connection()
+    )
 
     return {
         "status": (

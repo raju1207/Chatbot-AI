@@ -12,40 +12,67 @@ import {
   getConversation,
   getConversations,
   regenerateMessage,
+  streamImageMessage,
   streamMessage,
 } from "../services/api";
 
 
 export default function ChatPage() {
-  const [conversations, setConversations] =
-    useState([]);
-
-  const [conversationId, setConversationId] =
-    useState(null);
-
-  const [messages, setMessages] =
-    useState([]);
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [mobileSidebarOpen, setMobileSidebarOpen] =
-    useState(false);
-
-  const controllerRef = useRef(null);
+  const [
+    conversations,
+    setConversations,
+  ] = useState([]);
 
 
-  const loadConversations = async () => {
-    try {
-      const data = await getConversations();
-      setConversations(data);
-    } catch (error) {
-      console.error(
-        "Conversation list error:",
-        error
-      );
-    }
-  };
+  const [
+    conversationId,
+    setConversationId,
+  ] = useState(null);
+
+
+  const [
+    messages,
+    setMessages,
+  ] = useState([]);
+
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
+
+
+  const [
+    mobileSidebarOpen,
+    setMobileSidebarOpen,
+  ] = useState(false);
+
+
+  const controllerRef =
+    useRef(null);
+
+
+  /* =========================================
+     LOAD CONVERSATIONS
+  ========================================= */
+
+  const loadConversations =
+    async () => {
+      try {
+        const data =
+          await getConversations();
+
+        setConversations(
+          data
+        );
+
+      } catch (error) {
+        console.error(
+          "Conversation list error:",
+          error
+        );
+      }
+    };
 
 
   useEffect(() => {
@@ -53,323 +80,581 @@ export default function ChatPage() {
   }, []);
 
 
-  const appendToken = (token) => {
-    setMessages((previous) => {
-      const updated = [...previous];
+  /* =========================================
+     ADD STREAMING TOKEN
+  ========================================= */
 
-      const index =
-        updated.length - 1;
+  const appendToken =
+    (token) => {
+      setMessages(
+        (previous) => {
+          const updated =
+            [...previous];
 
+          const index =
+            updated.length - 1;
+
+
+          if (
+            index >= 0 &&
+            updated[index].role ===
+              "assistant"
+          ) {
+            updated[index] = {
+              ...updated[index],
+
+              content:
+                updated[index]
+                  .content +
+                token,
+            };
+          }
+
+
+          return updated;
+        }
+      );
+    };
+
+
+  /* =========================================
+     REMOVE EMPTY ASSISTANT MESSAGE
+  ========================================= */
+
+  const removeEmptyAssistant =
+    () => {
+      setMessages(
+        (previous) => {
+          const updated =
+            [...previous];
+
+          const last =
+            updated[
+              updated.length - 1
+            ];
+
+
+          if (
+            last?.role ===
+              "assistant" &&
+            !last.content.trim()
+          ) {
+            return updated.slice(
+              0,
+              -1
+            );
+          }
+
+
+          return updated;
+        }
+      );
+    };
+
+
+  /* =========================================
+     NORMAL TEXT MESSAGE
+  ========================================= */
+
+  const handleSend =
+    async (message) => {
       if (
-        index >= 0 &&
-        updated[index].role === "assistant"
+        !message.trim() ||
+        loading
       ) {
-        updated[index] = {
-          ...updated[index],
-
-          content:
-            updated[index].content +
-            token,
-        };
+        return;
       }
 
-      return updated;
-    });
-  };
+
+      setMessages(
+        (previous) => [
+          ...previous,
+
+          {
+            role: "user",
+            content: message,
+          },
+
+          {
+            role: "assistant",
+            content: "",
+          },
+        ]
+      );
 
 
-  const removeEmptyAssistant = () => {
-    setMessages((previous) => {
-      const updated = [...previous];
+      setLoading(true);
 
-      const last =
-        updated[
-          updated.length - 1
-        ];
 
-      if (
-        last?.role === "assistant" &&
-        !last.content.trim()
-      ) {
-        return updated.slice(
-          0,
-          -1
+      const controller =
+        new AbortController();
+
+
+      controllerRef.current =
+        controller;
+
+
+      try {
+        await streamMessage({
+          message,
+
+          conversationId,
+
+          signal:
+            controller.signal,
+
+
+          onConversationId:
+            (newId) => {
+              setConversationId(
+                newId
+              );
+            },
+
+
+          onToken:
+            appendToken,
+
+
+          onDone: () => {
+            loadConversations();
+          },
+
+
+          onAbort: () => {
+            removeEmptyAssistant();
+
+            loadConversations();
+          },
+
+
+          onError: () => {
+            setMessages(
+              (previous) => {
+                const updated =
+                  [...previous];
+
+                const index =
+                  updated.length - 1;
+
+
+                if (
+                  index >= 0
+                ) {
+                  updated[index] = {
+                    role:
+                      "assistant",
+
+                    content:
+                      "Sorry, something went wrong while generating the response.",
+                  };
+                }
+
+
+                return updated;
+              }
+            );
+          },
+        });
+
+      } catch (error) {
+        console.error(
+          "Chat stream failed:",
+          error
         );
+
+      } finally {
+        if (
+          controllerRef.current ===
+          controller
+        ) {
+          controllerRef.current =
+            null;
+        }
+
+
+        setLoading(false);
+      }
+    };
+
+
+  /* =========================================
+     IMAGE MESSAGE
+  ========================================= */
+
+  const handleSendImage =
+    async (
+      message,
+      image,
+      previewUrl
+    ) => {
+      if (
+        !image ||
+        loading
+      ) {
+        return;
       }
 
-      return updated;
-    });
+
+      /*
+        Create a separate image URL for
+        the actual chat message.
+
+        This avoids losing the image when
+        ChatInput clears its own preview.
+      */
+      const messageImageUrl =
+        URL.createObjectURL(
+          image
+        );
+
+
+      setMessages(
+        (previous) => [
+          ...previous,
+
+          {
+            role: "user",
+
+            content:
+              message ||
+              "Please describe this image.",
+
+            imageUrl:
+              messageImageUrl,
+          },
+
+          {
+            role:
+              "assistant",
+
+            content: "",
+          },
+        ]
+      );
+
+
+      setLoading(true);
+
+
+      const controller =
+        new AbortController();
+
+
+      controllerRef.current =
+        controller;
+
+
+      try {
+        await streamImageMessage({
+          message:
+            message ||
+            "Please describe this image.",
+
+          image,
+
+          conversationId,
+
+          signal:
+            controller.signal,
+
+
+          onConversationId:
+            (newId) => {
+              setConversationId(
+                newId
+              );
+            },
+
+
+          onToken:
+            appendToken,
+
+
+          onDone: () => {
+            loadConversations();
+          },
+
+
+          onAbort: () => {
+            removeEmptyAssistant();
+
+            loadConversations();
+          },
+
+
+          onError: () => {
+            setMessages(
+              (previous) => {
+                const updated =
+                  [...previous];
+
+                const index =
+                  updated.length - 1;
+
+
+                if (
+                  index >= 0
+                ) {
+                  updated[index] = {
+                    role:
+                      "assistant",
+
+                    content:
+                      "Sorry, I could not analyze this image.",
+                  };
+                }
+
+
+                return updated;
+              }
+            );
+          },
+        });
+
+      } catch (error) {
+        console.error(
+          "Image chat failed:",
+          error
+        );
+
+      } finally {
+        if (
+          controllerRef.current ===
+          controller
+        ) {
+          controllerRef.current =
+            null;
+        }
+
+
+        setLoading(false);
+      }
+    };
+
+
+  /* =========================================
+     STOP GENERATION
+  ========================================= */
+
+  const handleStop = () => {
+    if (
+      controllerRef.current
+    ) {
+      controllerRef.current
+        .abort();
+    }
   };
 
 
-  const handleSend = async (message) => {
-    if (
-      !message.trim() ||
-      loading
-    ) {
-      return;
-    }
+  /* =========================================
+     REGENERATE RESPONSE
+  ========================================= */
 
-    setMessages((previous) => [
-      ...previous,
+  const handleRegenerate =
+    async () => {
+      if (
+        !conversationId ||
+        loading
+      ) {
+        return;
+      }
 
-      {
-        role: "user",
-        content: message,
-      },
 
-      {
-        role: "assistant",
-        content: "",
-      },
-    ]);
+      let assistantIndex = -1;
 
-    setLoading(true);
 
-    const controller =
-      new AbortController();
+      for (
+        let index =
+          messages.length - 1;
 
-    controllerRef.current =
-      controller;
+        index >= 0;
 
-    try {
-      await streamMessage({
-        message,
+        index--
+      ) {
+        if (
+          messages[index].role ===
+          "assistant"
+        ) {
+          assistantIndex =
+            index;
 
-        conversationId,
+          break;
+        }
+      }
 
-        signal:
-          controller.signal,
 
-        onConversationId:
-          (newId) => {
-            setConversationId(
-              newId
+      if (
+        assistantIndex === -1
+      ) {
+        return;
+      }
+
+
+      const originalResponse =
+        messages[
+          assistantIndex
+        ].content;
+
+
+      setMessages(
+        (previous) => {
+          const updated =
+            [...previous];
+
+
+          updated[
+            assistantIndex
+          ] = {
+            ...updated[
+              assistantIndex
+            ],
+
+            content: "",
+          };
+
+
+          return updated;
+        }
+      );
+
+
+      setLoading(true);
+
+
+      const controller =
+        new AbortController();
+
+
+      controllerRef.current =
+        controller;
+
+
+      try {
+        await regenerateMessage({
+          conversationId,
+
+          signal:
+            controller.signal,
+
+
+          onToken:
+            appendToken,
+
+
+          onDone: () => {
+            loadConversations();
+          },
+
+
+          onAbort: () => {
+            setMessages(
+              (previous) => {
+                const updated =
+                  [...previous];
+
+                const index =
+                  updated.length - 1;
+
+
+                if (
+                  index >= 0 &&
+                  updated[index].role ===
+                    "assistant"
+                ) {
+                  updated[index] = {
+                    ...updated[index],
+
+                    content:
+                      originalResponse,
+                  };
+                }
+
+
+                return updated;
+              }
             );
           },
 
-        onToken:
-          appendToken,
 
-        onDone: () => {
-          loadConversations();
-        },
+          onError: () => {
+            setMessages(
+              (previous) => {
+                const updated =
+                  [...previous];
 
-        onAbort: () => {
-          removeEmptyAssistant();
-          loadConversations();
-        },
+                const index =
+                  updated.length - 1;
 
-        onError: () => {
-          setMessages(
-            (previous) => {
-              const updated =
-                [...previous];
 
-              const index =
-                updated.length - 1;
+                if (
+                  index >= 0
+                ) {
+                  updated[index] = {
+                    role:
+                      "assistant",
 
-              if (index >= 0) {
-                updated[index] = {
-                  role:
-                    "assistant",
+                    content:
+                      originalResponse,
+                  };
+                }
 
-                  content:
-                    "Sorry, something went wrong while generating the response.",
-                };
+
+                return updated;
               }
+            );
+          },
+        });
 
-              return updated;
-            }
-          );
-        },
-      });
-    } catch (error) {
-      console.error(
-        "Chat stream failed:",
-        error
+      } catch (error) {
+        console.error(
+          "Regenerate failed:",
+          error
+        );
+
+      } finally {
+        if (
+          controllerRef.current ===
+          controller
+        ) {
+          controllerRef.current =
+            null;
+        }
+
+
+        setLoading(false);
+      }
+    };
+
+
+  /* =========================================
+     NEW CHAT
+  ========================================= */
+
+  const handleNewChat =
+    () => {
+      if (loading) {
+        return;
+      }
+
+
+      setConversationId(
+        null
       );
-    } finally {
-      if (
-        controllerRef.current ===
-        controller
-      ) {
-        controllerRef.current =
-          null;
-      }
-
-      setLoading(false);
-    }
-  };
 
 
-  const handleStop = () => {
-    if (controllerRef.current) {
-      controllerRef.current.abort();
-    }
-  };
+      setMessages([]);
 
 
-  const handleRegenerate = async () => {
-    if (
-      !conversationId ||
-      loading
-    ) {
-      return;
-    }
-
-    let assistantIndex = -1;
-
-    for (
-      let index =
-        messages.length - 1;
-
-      index >= 0;
-
-      index--
-    ) {
-      if (
-        messages[index].role ===
-        "assistant"
-      ) {
-        assistantIndex =
-          index;
-
-        break;
-      }
-    }
-
-    if (
-      assistantIndex === -1
-    ) {
-      return;
-    }
-
-    const originalResponse =
-      messages[
-        assistantIndex
-      ].content;
-
-    setMessages((previous) => {
-      const updated =
-        [...previous];
-
-      updated[
-        assistantIndex
-      ] = {
-        ...updated[
-          assistantIndex
-        ],
-
-        content: "",
-      };
-
-      return updated;
-    });
-
-    setLoading(true);
-
-    const controller =
-      new AbortController();
-
-    controllerRef.current =
-      controller;
-
-    try {
-      await regenerateMessage({
-        conversationId,
-
-        signal:
-          controller.signal,
-
-        onToken:
-          appendToken,
-
-        onDone: () => {
-          loadConversations();
-        },
-
-        onAbort: () => {
-          setMessages(
-            (previous) => {
-              const updated =
-                [...previous];
-
-              const index =
-                updated.length - 1;
-
-              if (
-                index >= 0 &&
-                updated[index].role ===
-                  "assistant"
-              ) {
-                updated[index] = {
-                  ...updated[index],
-
-                  content:
-                    originalResponse,
-                };
-              }
-
-              return updated;
-            }
-          );
-        },
-
-        onError: () => {
-          setMessages(
-            (previous) => {
-              const updated =
-                [...previous];
-
-              const index =
-                updated.length - 1;
-
-              if (index >= 0) {
-                updated[index] = {
-                  role:
-                    "assistant",
-
-                  content:
-                    originalResponse,
-                };
-              }
-
-              return updated;
-            }
-          );
-        },
-      });
-    } catch (error) {
-      console.error(
-        "Regenerate failed:",
-        error
+      setMobileSidebarOpen(
+        false
       );
-    } finally {
-      if (
-        controllerRef.current ===
-        controller
-      ) {
-        controllerRef.current =
-          null;
-      }
-
-      setLoading(false);
-    }
-  };
+    };
 
 
-  const handleNewChat = () => {
-    if (loading) {
-      return;
-    }
-
-    setConversationId(null);
-    setMessages([]);
-
-    setMobileSidebarOpen(false);
-  };
-
+  /* =========================================
+     OPEN EXISTING CHAT
+  ========================================= */
 
   const handleSelectConversation =
     async (id) => {
@@ -377,19 +662,28 @@ export default function ChatPage() {
         return;
       }
 
+
       try {
         const data =
-          await getConversation(id);
+          await getConversation(
+            id
+          );
 
-        setConversationId(id);
+
+        setConversationId(
+          id
+        );
+
 
         setMessages(
           data.messages || []
         );
 
+
         setMobileSidebarOpen(
           false
         );
+
       } catch (error) {
         console.error(
           "Conversation load failed:",
@@ -399,23 +693,36 @@ export default function ChatPage() {
     };
 
 
+  /* =========================================
+     DELETE CHAT
+  ========================================= */
+
   const handleDeleteConversation =
     async (id) => {
       if (loading) {
         return;
       }
 
+
       try {
-        await deleteConversation(id);
+        await deleteConversation(
+          id
+        );
+
 
         if (
           conversationId === id
         ) {
-          setConversationId(null);
+          setConversationId(
+            null
+          );
+
           setMessages([]);
         }
 
+
         await loadConversations();
+
       } catch (error) {
         console.error(
           "Delete conversation failed:",
@@ -425,22 +732,35 @@ export default function ChatPage() {
     };
 
 
+  /* =========================================
+     UI
+  ========================================= */
+
   return (
     <div className="app-shell">
+
+      {/* MOBILE OVERLAY */}
 
       {mobileSidebarOpen && (
         <button
           type="button"
-          className="mobile-sidebar-overlay"
+
+          className=
+            "mobile-sidebar-overlay"
+
           onClick={() =>
             setMobileSidebarOpen(
               false
             )
           }
-          aria-label="Close sidebar"
+
+          aria-label=
+            "Close sidebar"
         />
       )}
 
+
+      {/* SIDEBAR */}
 
       <Sidebar
         conversations={
@@ -475,11 +795,19 @@ export default function ChatPage() {
       />
 
 
+      {/* CHAT */}
+
       <ChatWindow
-        messages={messages}
+        messages={
+          messages
+        }
 
         onSend={
           handleSend
+        }
+
+        onSendImage={
+          handleSendImage
         }
 
         onStop={
