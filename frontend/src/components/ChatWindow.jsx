@@ -1,13 +1,11 @@
 import {
-  Sparkles,
   ChevronDown,
+  Menu,
+  Sparkles,
 } from "lucide-react";
 
-import MessageBubble from
-  "./MessageBubble";
-
-import ChatInput from
-  "./ChatInput";
+import MessageBubble from "./MessageBubble";
+import ChatInput from "./ChatInput";
 
 
 export default function ChatWindow({
@@ -15,6 +13,7 @@ export default function ChatWindow({
   onSend,
   onStop,
   onRegenerate,
+  onOpenSidebar,
   loading,
 }) {
 
@@ -34,7 +33,6 @@ export default function ChatWindow({
         }
 
         return latest;
-
       },
       -1
     );
@@ -45,12 +43,30 @@ export default function ChatWindow({
 
       <header className="chat-header">
 
+        <button
+          type="button"
+          className="mobile-menu-button"
+          onClick={
+            onOpenSidebar
+          }
+          aria-label="Open sidebar"
+          title="Open sidebar"
+        >
+          <Menu size={20} />
+        </button>
+
+
         <div className="chat-header-title">
           Chatbot AI
         </div>
 
-        <button className="model-selector">
+
+        <button
+          type="button"
+          className="model-selector"
+        >
           Llama 3.2
+
           <ChevronDown
             size={14}
           />
@@ -71,9 +87,11 @@ export default function ChatWindow({
               />
             </div>
 
+
             <h1>
               How can I help you today?
             </h1>
+
 
             <p>
               Ask questions,
@@ -86,6 +104,7 @@ export default function ChatWindow({
             <div className="suggestion-grid">
 
               <button
+                type="button"
                 onClick={() =>
                   onSend(
                     "Explain machine learning in simple words."
@@ -103,6 +122,7 @@ export default function ChatWindow({
 
 
               <button
+                type="button"
                 onClick={() =>
                   onSend(
                     "Give me a Python coding interview question."
@@ -120,6 +140,7 @@ export default function ChatWindow({
 
 
               <button
+                type="button"
                 onClick={() =>
                   onSend(
                     "Help me prepare for an AI engineer interview."
@@ -168,60 +189,64 @@ export default function ChatWindow({
                 return (
                   <MessageBubble
                     key={`${message.role}-${index}`}
+
                     role={
                       message.role
                     }
+
                     content={
                       message.content
                     }
+
                     isLastAssistant={
                       index ===
-                        lastAssistantIndex
+                      lastAssistantIndex
                     }
+
                     onRegenerate={
                       onRegenerate
                     }
+
                     loading={
                       loading
                     }
                   />
                 );
-
               }
             )}
 
 
             {loading &&
-             lastAssistantIndex >= 0 &&
-             !messages[
-               lastAssistantIndex
-             ]?.content && (
+              lastAssistantIndex >= 0 &&
+              !messages[
+                lastAssistantIndex
+              ]?.content && (
 
-              <div className="thinking-row">
+                <div className="thinking-row">
 
-                <div className="message-avatar">
-                  <Sparkles
-                    size={18}
-                  />
-                </div>
-
-                <div>
-
-                  <div className="message-name">
-                    Chatbot AI
+                  <div className="message-avatar">
+                    <Sparkles
+                      size={18}
+                    />
                   </div>
 
-                  <div className="thinking-animation">
-                    <span />
-                    <span />
-                    <span />
+                  <div>
+
+                    <div className="message-name">
+                      Chatbot AI
+                    </div>
+
+                    <div className="thinking-animation">
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+
                   </div>
 
                 </div>
 
-              </div>
-
-            )}
+              )}
 
           </div>
 
@@ -231,9 +256,17 @@ export default function ChatWindow({
 
 
       <ChatInput
-        onSend={onSend}
-        onStop={onStop}
-        loading={loading}
+        onSend={
+          onSend
+        }
+
+        onStop={
+          onStop
+        }
+
+        loading={
+          loading
+        }
       />
 
     </main>
