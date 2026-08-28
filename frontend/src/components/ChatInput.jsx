@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -6,12 +7,12 @@ import {
 
 import {
   ArrowUp,
-  Mic,
   Square,
   X,
 } from "lucide-react";
 
 import ImageUploader from "./ImageUploader";
+import VoiceRecorder from "./VoiceRecorder";
 
 
 export default function ChatInput({
@@ -44,12 +45,46 @@ export default function ChatInput({
   }, [previewUrl]);
 
 
+  const resizeTextarea = () => {
+    if (!textareaRef.current) {
+      return;
+    }
+
+    textareaRef.current.style.height =
+      "auto";
+
+    textareaRef.current.style.height =
+      `${Math.min(
+        textareaRef.current.scrollHeight,
+        180
+      )}px`;
+  };
+
+
+  const handleVoiceTranscript =
+    useCallback((transcript) => {
+      setMessage((previous) => {
+        if (!previous.trim()) {
+          return transcript;
+        }
+
+        return `${previous.trim()} ${transcript}`;
+      });
+
+
+      setTimeout(() => {
+        resizeTextarea();
+      }, 0);
+    }, []);
+
+
   const handleImageSelect = (file) => {
     const allowedTypes = [
       "image/jpeg",
       "image/png",
       "image/webp",
     ];
+
 
     if (
       !allowedTypes.includes(
@@ -63,6 +98,7 @@ export default function ChatInput({
       return;
     }
 
+
     if (
       file.size >
       10 * 1024 * 1024
@@ -74,11 +110,13 @@ export default function ChatInput({
       return;
     }
 
+
     if (previewUrl) {
       URL.revokeObjectURL(
         previewUrl
       );
     }
+
 
     setImage(file);
 
@@ -96,6 +134,7 @@ export default function ChatInput({
     }
 
     setImage(null);
+
     setPreviewUrl(null);
   };
 
@@ -104,11 +143,19 @@ export default function ChatInput({
     const text =
       message.trim();
 
-    if (loading) return;
 
-    if (!text && !image) {
+    if (loading) {
       return;
     }
+
+
+    if (
+      !text &&
+      !image
+    ) {
+      return;
+    }
+
 
     if (image) {
       onSendImage(
@@ -119,14 +166,20 @@ export default function ChatInput({
       );
 
       setImage(null);
+
       setPreviewUrl(null);
+
     } else {
       onSend(text);
     }
 
+
     setMessage("");
 
-    if (textareaRef.current) {
+
+    if (
+      textareaRef.current
+    ) {
       textareaRef.current.style.height =
         "auto";
     }
@@ -155,6 +208,7 @@ export default function ChatInput({
       !event.shiftKey
     ) {
       event.preventDefault();
+
       handleSubmit();
     }
   };
@@ -175,21 +229,27 @@ export default function ChatInput({
                 alt="Selected"
               />
 
+
               <button
                 type="button"
+
                 className="remove-image-button"
+
                 onClick={
                   removeImage
                 }
+
                 disabled={
                   loading
                 }
+
                 title="Remove image"
               >
                 <X size={14} />
               </button>
 
             </div>
+
 
             <div className="image-preview-name">
               {image?.name}
@@ -201,16 +261,28 @@ export default function ChatInput({
 
         <textarea
           ref={textareaRef}
+
           value={message}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
+
+          onChange={
+            handleChange
+          }
+
+          onKeyDown={
+            handleKeyDown
+          }
+
           placeholder={
             image
               ? "Ask something about this image..."
               : "How can I help you today?"
           }
+
           rows={1}
-          disabled={loading}
+
+          disabled={
+            loading
+          }
         />
 
 
@@ -222,19 +294,22 @@ export default function ChatInput({
               onSelect={
                 handleImageSelect
               }
+
               disabled={
                 loading
               }
             />
 
-            <button
-              type="button"
-              className="tool-button"
-              disabled
-              title="Voice coming later"
-            >
-              <Mic size={19} />
-            </button>
+
+            <VoiceRecorder
+              onTranscript={
+                handleVoiceTranscript
+              }
+
+              disabled={
+                loading
+              }
+            />
 
           </div>
 
@@ -242,8 +317,14 @@ export default function ChatInput({
           {loading ? (
             <button
               type="button"
-              className="send-button stop-button"
-              onClick={onStop}
+
+              className=
+                "send-button stop-button"
+
+              onClick={
+                onStop
+              }
+
               title="Stop generation"
             >
               <Square
@@ -254,10 +335,13 @@ export default function ChatInput({
           ) : (
             <button
               type="button"
+
               className="send-button"
+
               onClick={
                 handleSubmit
               }
+
               disabled={
                 !message.trim() &&
                 !image
