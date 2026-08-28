@@ -3,6 +3,7 @@ import json
 
 from fastapi import (
     APIRouter,
+    Depends,
     HTTPException,
 )
 
@@ -14,6 +15,10 @@ from app.models.chat import (
     ChatRequest,
     ChatResponse,
     RegenerateRequest,
+)
+
+from app.services.auth_service import (
+    get_current_user,
 )
 
 from app.services.chat_service import (
@@ -41,24 +46,35 @@ router = APIRouter(
 )
 async def chat(
     request: ChatRequest,
+
+    current_user=
+        Depends(
+            get_current_user
+        ),
 ):
-
     try:
-
         result = await process_chat(
             conversation_id=
                 request.conversation_id,
 
             message=
                 request.message,
+
+            user_id=
+                current_user["user_id"],
         )
 
         return ChatResponse(
             **result
         )
 
-    except Exception as error:
+    except ValueError as error:
+        raise HTTPException(
+            status_code=404,
+            detail=str(error),
+        )
 
+    except Exception as error:
         print(
             "Chat error:",
             error
@@ -75,19 +91,12 @@ async def create_stream(
     history: list[dict],
     replace_message_id=None,
 ):
-    """
-    Shared streaming logic for:
-    - new message
-    - regenerate response
-    """
-
     full_response = ""
 
     yield (
         json.dumps(
             {
                 "type": "meta",
-
                 "conversation_id":
                     conversation_id,
             }
@@ -95,15 +104,12 @@ async def create_stream(
         + "\n"
     )
 
-
     try:
-
         async for chunk in (
             stream_ai_response(
                 history
             )
         ):
-
             full_response += chunk
 
             yield (
@@ -119,9 +125,7 @@ async def create_stream(
                 + "\n"
             )
 
-
         if replace_message_id:
-
             await replace_assistant_message(
                 replace_message_id,
                 conversation_id,
@@ -129,39 +133,28 @@ async def create_stream(
             )
 
         else:
-
             await save_assistant_message(
                 conversation_id,
                 full_response,
             )
 
-
         yield (
             json.dumps(
                 {
-                    "type":
-                        "done"
+                    "type": "done"
                 }
             )
             + "\n"
         )
 
-
     except asyncio.CancelledError:
-
-        # Browser clicked Stop.
-        # Closing the HTTP stream also stops
-        # the upstream Ollama stream.
-
         print(
             "Generation stopped by user."
         )
 
         raise
 
-
     except Exception as error:
-
         print(
             "Streaming error:",
             error
@@ -186,10 +179,13 @@ async def create_stream(
 )
 async def chat_stream(
     request: ChatRequest,
+
+    current_user=
+        Depends(
+            get_current_user
+        ),
 ):
-
     try:
-
         (
             conversation_id,
             history,
@@ -199,15 +195,22 @@ async def chat_stream(
 
             message=
                 request.message,
+
+            user_id=
+                current_user["user_id"],
+        )
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=404,
+            detail=str(error),
         )
 
     except Exception as error:
-
         raise HTTPException(
             status_code=500,
             detail=str(error),
         )
-
 
     return StreamingResponse(
         create_stream(
@@ -233,33 +236,33 @@ async def chat_stream(
 )
 async def regenerate_stream(
     request: RegenerateRequest,
+
+    current_user=
+        Depends(
+            get_current_user
+        ),
 ):
-
     try:
-
         (
             conversation_id,
             history,
             assistant_message_id,
         ) = await prepare_regeneration(
-            request.conversation_id
+            request.conversation_id,
+            current_user["user_id"],
         )
 
     except ValueError as error:
-
         raise HTTPException(
-            status_code=400,
+            status_code=404,
             detail=str(error),
         )
 
-
     except Exception as error:
-
         raise HTTPException(
             status_code=500,
             detail=str(error),
         )
-
 
     return StreamingResponse(
         create_stream(
