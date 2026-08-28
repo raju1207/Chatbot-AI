@@ -1,10 +1,19 @@
 import {
+  LogOut,
   MessageSquare,
   Plus,
   Sparkles,
   Trash2,
   X,
 } from "lucide-react";
+
+import {
+  useState,
+} from "react";
+
+import {
+  useAuth,
+} from "../context/AuthContext";
 
 
 export default function Sidebar({
@@ -16,6 +25,74 @@ export default function Sidebar({
   mobileOpen,
   onCloseMobile,
 }) {
+  const {
+    user,
+    logout,
+  } = useAuth();
+
+  const [
+    loggingOut,
+    setLoggingOut,
+  ] = useState(false);
+
+
+  /* =========================================
+     USER INITIALS
+  ========================================= */
+
+  const getInitials = () => {
+    if (!user?.name) {
+      return "U";
+    }
+
+    const parts =
+      user.name
+        .trim()
+        .split(/\s+/);
+
+    if (parts.length === 1) {
+      return parts[0]
+        .charAt(0)
+        .toUpperCase();
+    }
+
+    return (
+      parts[0]
+        .charAt(0) +
+      parts[parts.length - 1]
+        .charAt(0)
+    ).toUpperCase();
+  };
+
+
+  /* =========================================
+     LOGOUT
+  ========================================= */
+
+  const handleLogout =
+    async () => {
+      if (loggingOut) {
+        return;
+      }
+
+      setLoggingOut(true);
+
+      try {
+        await logout();
+
+        onCloseMobile?.();
+
+      } catch (error) {
+        console.error(
+          "Logout failed:",
+          error
+        );
+
+      } finally {
+        setLoggingOut(false);
+      }
+    };
+
 
   return (
     <aside
@@ -25,6 +102,10 @@ export default function Sidebar({
           : ""
       }`}
     >
+
+      {/* =====================================
+          BRAND
+      ===================================== */}
 
       <div className="sidebar-brand-row">
 
@@ -56,6 +137,10 @@ export default function Sidebar({
       </div>
 
 
+      {/* =====================================
+          NEW CHAT
+      ===================================== */}
+
       <button
         type="button"
         className="new-chat-button"
@@ -71,10 +156,18 @@ export default function Sidebar({
       </button>
 
 
+      {/* =====================================
+          RECENT
+      ===================================== */}
+
       <div className="sidebar-section-title">
         Recent
       </div>
 
+
+      {/* =====================================
+          CONVERSATIONS
+      ===================================== */}
 
       <div className="conversation-list">
 
@@ -107,7 +200,9 @@ export default function Sidebar({
 
                   <button
                     type="button"
-                    className="conversation-main"
+
+                    className=
+                      "conversation-main"
 
                     onClick={() =>
                       onSelectConversation(
@@ -130,7 +225,9 @@ export default function Sidebar({
 
                   <button
                     type="button"
-                    className="conversation-delete"
+
+                    className=
+                      "conversation-delete"
 
                     onClick={(event) => {
                       event.stopPropagation();
@@ -140,9 +237,11 @@ export default function Sidebar({
                       );
                     }}
 
-                    title="Delete conversation"
+                    title=
+                      "Delete conversation"
 
-                    aria-label="Delete conversation"
+                    aria-label=
+                      "Delete conversation"
                   >
                     <Trash2
                       size={15}
@@ -159,23 +258,57 @@ export default function Sidebar({
       </div>
 
 
-      <div className="sidebar-footer">
+      {/* =====================================
+          LOGGED-IN USER
+      ===================================== */}
 
-        <div className="avatar">
-          AI
-        </div>
+      <div className="sidebar-user-footer">
 
-        <div>
+        <div className="sidebar-user-info">
 
-          <div className="sidebar-footer-name">
-            Local Assistant
+          <div className="user-avatar">
+            {getInitials()}
           </div>
 
-          <div className="sidebar-footer-model">
-            Llama 3.2
+
+          <div className="user-details">
+
+            <div className="sidebar-user-name">
+              {user?.name ||
+                "User"}
+            </div>
+
+            <div className="sidebar-user-email">
+              {user?.email ||
+                ""}
+            </div>
+
           </div>
 
         </div>
+
+
+        <button
+          type="button"
+
+          className="logout-button"
+
+          onClick={
+            handleLogout
+          }
+
+          disabled={
+            loggingOut
+          }
+
+          title="Logout"
+
+          aria-label="Logout"
+        >
+
+          <LogOut size={18} />
+
+        </button>
 
       </div>
 

@@ -1767,3 +1767,165 @@ button:hover {
   }
 
 }
+
+/* =========================================
+   SIDEBAR USER / LOGOUT
+========================================= */
+
+.sidebar-user-footer {
+  margin-top: auto;
+
+  padding:
+    14px
+    12px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content:
+    space-between;
+
+  gap: 10px;
+
+  border-top:
+    1px solid
+    rgba(0, 0, 0, 0.08);
+}
+
+
+.sidebar-user-info {
+  min-width: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  flex: 1;
+}
+
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      #e98869,
+      #df6d50
+    );
+
+  color: #ffffff;
+
+  font-size: 13px;
+
+  font-weight: 700;
+
+  box-shadow:
+    0 5px 14px
+    rgba(223, 109, 80, 0.2);
+}
+
+
+.user-details {
+  min-width: 0;
+
+  flex: 1;
+}
+
+
+.sidebar-user-name {
+  overflow: hidden;
+
+  color: #262626;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  text-overflow:
+    ellipsis;
+
+  white-space: nowrap;
+}
+
+
+.sidebar-user-email {
+  margin-top: 2px;
+
+  overflow: hidden;
+
+  color: #85817c;
+
+  font-size: 11px;
+
+  text-overflow:
+    ellipsis;
+
+  white-space: nowrap;
+}
+
+
+.logout-button {
+  width: 34px;
+  height: 34px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: #77736f;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+
+.logout-button:hover {
+  background:
+    rgba(220, 70, 55, 0.08);
+
+  color: #c63c31;
+}
+
+
+.logout-button:disabled {
+  opacity: 0.5;
+
+  cursor: not-allowed;
+}
+
+
+/* OLD FOOTER NO LONGER USED */
+
+.sidebar-footer {
+  display: none;
+}

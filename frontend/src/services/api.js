@@ -6,6 +6,43 @@ const API_BASE_URL =
   "http://localhost:8000";
 
 
+const TOKEN_KEY =
+  "chatbot_access_token";
+
+
+/* =========================================
+   TOKEN HELPERS
+========================================= */
+
+export const getAccessToken = () => {
+  return localStorage.getItem(
+    TOKEN_KEY
+  );
+};
+
+
+export const setAccessToken = (
+  token
+) => {
+  localStorage.setItem(
+    TOKEN_KEY,
+    token
+  );
+};
+
+
+export const clearAccessToken =
+  () => {
+    localStorage.removeItem(
+      TOKEN_KEY
+    );
+  };
+
+
+/* =========================================
+   AXIOS INSTANCE
+========================================= */
+
 const api = axios.create({
   baseURL: API_BASE_URL,
 
@@ -15,6 +52,96 @@ const api = axios.create({
   },
 });
 
+
+/* =========================================
+   AUTOMATIC JWT HEADER
+========================================= */
+
+api.interceptors.request.use(
+  (config) => {
+    const token =
+      getAccessToken();
+
+    if (token) {
+      config.headers.Authorization =
+        `Bearer ${token}`;
+    }
+
+    return config;
+  },
+
+  (error) =>
+    Promise.reject(error)
+);
+
+
+/* =========================================
+   AUTH API
+========================================= */
+
+export const registerUser =
+  async ({
+    name,
+    email,
+    password,
+  }) => {
+    const response =
+      await api.post(
+        "/api/auth/register",
+        {
+          name,
+          email,
+          password,
+        }
+      );
+
+    return response.data;
+  };
+
+
+export const loginUser =
+  async ({
+    email,
+    password,
+  }) => {
+    const response =
+      await api.post(
+        "/api/auth/login",
+        {
+          email,
+          password,
+        }
+      );
+
+    return response.data;
+  };
+
+
+export const getCurrentUser =
+  async () => {
+    const response =
+      await api.get(
+        "/api/auth/me"
+      );
+
+    return response.data;
+  };
+
+
+export const logoutUser =
+  async () => {
+    const response =
+      await api.post(
+        "/api/auth/logout"
+      );
+
+    return response.data;
+  };
+
+
+/* =========================================
+   CONVERSATIONS
+========================================= */
 
 export const getConversations =
   async () => {
@@ -49,6 +176,30 @@ export const deleteConversation =
   };
 
 
+/* =========================================
+   FETCH AUTH HEADER
+========================================= */
+
+const getFetchAuthHeaders =
+  () => {
+    const token =
+      getAccessToken();
+
+    if (!token) {
+      return {};
+    }
+
+    return {
+      Authorization:
+        `Bearer ${token}`,
+    };
+  };
+
+
+/* =========================================
+   STREAM PROCESSOR
+========================================= */
+
 const processStream =
   async ({
     response,
@@ -76,7 +227,9 @@ const processStream =
         done,
       } = await reader.read();
 
-      if (done) break;
+      if (done) {
+        break;
+      }
 
       buffer += decoder.decode(
         value,
@@ -133,6 +286,10 @@ const processStream =
   };
 
 
+/* =========================================
+   TEXT STREAM
+========================================= */
+
 export const streamMessage =
   async ({
     message,
@@ -154,6 +311,8 @@ export const streamMessage =
             headers: {
               "Content-Type":
                 "application/json",
+
+              ...getFetchAuthHeaders(),
             },
 
             body:
@@ -206,6 +365,10 @@ export const streamMessage =
   };
 
 
+/* =========================================
+   REGENERATE STREAM
+========================================= */
+
 export const regenerateMessage =
   async ({
     conversationId,
@@ -226,6 +389,8 @@ export const regenerateMessage =
             headers: {
               "Content-Type":
                 "application/json",
+
+              ...getFetchAuthHeaders(),
             },
 
             body:
@@ -276,6 +441,10 @@ export const regenerateMessage =
   };
 
 
+/* =========================================
+   IMAGE STREAM
+========================================= */
+
 export const streamImageMessage =
   async ({
     message,
@@ -314,6 +483,10 @@ export const streamImageMessage =
           `${API_BASE_URL}/api/chat/image/stream`,
           {
             method: "POST",
+
+            headers: {
+              ...getFetchAuthHeaders(),
+            },
 
             body: formData,
 
