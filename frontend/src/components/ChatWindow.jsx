@@ -3,15 +3,43 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-import MessageBubble from "./MessageBubble";
-import ChatInput from "./ChatInput";
+import MessageBubble from
+  "./MessageBubble";
+
+import ChatInput from
+  "./ChatInput";
 
 
 export default function ChatWindow({
   messages,
   onSend,
+  onStop,
+  onRegenerate,
   loading,
 }) {
+
+  const lastAssistantIndex =
+    messages.reduce(
+      (
+        latest,
+        message,
+        index
+      ) => {
+
+        if (
+          message.role ===
+          "assistant"
+        ) {
+          return index;
+        }
+
+        return latest;
+
+      },
+      -1
+    );
+
+
   return (
     <main className="chat-window">
 
@@ -21,10 +49,11 @@ export default function ChatWindow({
           Chatbot AI
         </div>
 
-
         <button className="model-selector">
           Llama 3.2
-          <ChevronDown size={14} />
+          <ChevronDown
+            size={14}
+          />
         </button>
 
       </header>
@@ -37,18 +66,19 @@ export default function ChatWindow({
           <div className="welcome-screen">
 
             <div className="welcome-logo">
-              <Sparkles size={26} />
+              <Sparkles
+                size={26}
+              />
             </div>
-
 
             <h1>
               How can I help you today?
             </h1>
 
-
             <p>
-              Ask questions, learn something
-              new, write code, or explore
+              Ask questions,
+              learn something new,
+              write code, or explore
               your ideas.
             </p>
 
@@ -67,8 +97,7 @@ export default function ChatWindow({
                 </strong>
 
                 <span>
-                  Explain machine learning
-                  simply
+                  Explain machine learning simply
                 </span>
               </button>
 
@@ -115,26 +144,69 @@ export default function ChatWindow({
           <div className="messages-container">
 
             {messages.map(
-              (message, index) => (
-                <MessageBubble
-                  key={`${message.role}-${index}`}
-                  role={message.role}
-                  content={message.content}
-                />
-              )
+              (
+                message,
+                index
+              ) => {
+
+                const isEmptyStreamingAssistant =
+                  loading &&
+                  index ===
+                    lastAssistantIndex &&
+                  message.role ===
+                    "assistant" &&
+                  !message.content;
+
+
+                if (
+                  isEmptyStreamingAssistant
+                ) {
+                  return null;
+                }
+
+
+                return (
+                  <MessageBubble
+                    key={`${message.role}-${index}`}
+                    role={
+                      message.role
+                    }
+                    content={
+                      message.content
+                    }
+                    isLastAssistant={
+                      index ===
+                        lastAssistantIndex
+                    }
+                    onRegenerate={
+                      onRegenerate
+                    }
+                    loading={
+                      loading
+                    }
+                  />
+                );
+
+              }
             )}
 
 
-            {loading && (
+            {loading &&
+             lastAssistantIndex >= 0 &&
+             !messages[
+               lastAssistantIndex
+             ]?.content && (
 
               <div className="thinking-row">
 
                 <div className="message-avatar">
-                  <Sparkles size={18} />
+                  <Sparkles
+                    size={18}
+                  />
                 </div>
 
-
                 <div>
+
                   <div className="message-name">
                     Chatbot AI
                   </div>
@@ -144,6 +216,7 @@ export default function ChatWindow({
                     <span />
                     <span />
                   </div>
+
                 </div>
 
               </div>
@@ -159,6 +232,7 @@ export default function ChatWindow({
 
       <ChatInput
         onSend={onSend}
+        onStop={onStop}
         loading={loading}
       />
 

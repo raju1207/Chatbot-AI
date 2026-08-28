@@ -13,11 +13,9 @@
   text-rendering: optimizeLegibility;
 }
 
-
 * {
   box-sizing: border-box;
 }
-
 
 html,
 body,
@@ -27,33 +25,29 @@ body,
   height: 100%;
 }
 
-
 body {
   overflow: hidden;
 }
-
 
 button,
 textarea {
   font: inherit;
 }
 
-
 button {
   cursor: pointer;
 }
 
 
-/* ============================= */
-/* APP */
-/* ============================= */
+/* =========================================
+   APP
+========================================= */
 
 .app-shell {
   width: 100%;
   height: 100vh;
 
   display: grid;
-
   grid-template-columns:
     270px minmax(0, 1fr);
 
@@ -61,9 +55,9 @@ button {
 }
 
 
-/* ============================= */
-/* SIDEBAR */
-/* ============================= */
+/* =========================================
+   SIDEBAR
+========================================= */
 
 .sidebar {
   height: 100vh;
@@ -81,7 +75,6 @@ button {
   overflow: hidden;
 }
 
-
 .sidebar-brand {
   display: flex;
   align-items: center;
@@ -96,7 +89,6 @@ button {
   color: #2d2a26;
 }
 
-
 .brand-icon {
   width: 30px;
   height: 30px;
@@ -110,7 +102,6 @@ button {
   background: #d97757;
   color: white;
 }
-
 
 .new-chat-button {
   height: 42px;
@@ -138,13 +129,11 @@ button {
     border 0.15s ease;
 }
 
-
 .new-chat-button:hover {
   background: white;
 
   border-color: #c9c4bb;
 }
-
 
 .sidebar-section-title {
   margin:
@@ -161,7 +150,6 @@ button {
   color: #88827a;
 }
 
-
 .conversation-list {
   flex: 1;
 
@@ -172,18 +160,15 @@ button {
   padding-right: 2px;
 }
 
-
 .conversation-list::-webkit-scrollbar {
   width: 5px;
 }
-
 
 .conversation-list::-webkit-scrollbar-thumb {
   background: #d1cdc6;
 
   border-radius: 10px;
 }
-
 
 .empty-history {
   padding: 12px 8px;
@@ -192,7 +177,6 @@ button {
 
   color: #928c84;
 }
-
 
 .conversation-item {
   min-height: 39px;
@@ -208,16 +192,13 @@ button {
     background 0.15s ease;
 }
 
-
 .conversation-item:hover {
   background: #e4e1db;
 }
 
-
 .conversation-item.active {
   background: #dedad3;
 }
-
 
 .conversation-main {
   min-width: 0;
@@ -243,7 +224,6 @@ button {
   text-align: left;
 }
 
-
 .conversation-main span {
   flex: 1;
 
@@ -257,7 +237,6 @@ button {
 
   font-size: 13px;
 }
-
 
 .conversation-delete {
   width: 30px;
@@ -280,19 +259,16 @@ button {
   opacity: 0;
 }
 
-
 .conversation-item:hover
 .conversation-delete {
   opacity: 1;
 }
-
 
 .conversation-delete:hover {
   background: #d4d0c9;
 
   color: #b13a30;
 }
-
 
 .sidebar-footer {
   display: flex;
@@ -306,7 +282,6 @@ button {
   border-top:
     1px solid #ddd9d2;
 }
-
 
 .avatar {
   width: 32px;
@@ -327,13 +302,11 @@ button {
   font-weight: 700;
 }
 
-
 .sidebar-footer-name {
   font-size: 12px;
 
   font-weight: 600;
 }
-
 
 .sidebar-footer-model {
   margin-top: 2px;
@@ -344,9 +317,9 @@ button {
 }
 
 
-/* ============================= */
-/* CHAT AREA */
-/* ============================= */
+/* =========================================
+   CHAT AREA
+========================================= */
 
 .chat-window {
   height: 100vh;
@@ -360,7 +333,9 @@ button {
 }
 
 
-/* HEADER */
+/* =========================================
+   HEADER
+========================================= */
 
 .chat-header {
   height: 58px;
@@ -379,7 +354,6 @@ button {
     rgba(248, 247, 244, 0.96);
 }
 
-
 .chat-header-title {
   font-size: 14px;
 
@@ -387,7 +361,6 @@ button {
 
   color: #34312d;
 }
-
 
 .model-selector {
   margin-left: 8px;
@@ -410,15 +383,14 @@ button {
   font-size: 12px;
 }
 
-
 .model-selector:hover {
   background: #efede8;
 }
 
 
-/* ============================= */
-/* MESSAGES */
-/* ============================= */
+/* =========================================
+   MESSAGE AREA
+========================================= */
 
 .messages-area {
   flex: 1;
@@ -427,7 +399,6 @@ button {
 
   overflow-y: auto;
 }
-
 
 .messages-container {
   width: min(
@@ -442,6 +413,10 @@ button {
 }
 
 
+/* =========================================
+   MESSAGE
+========================================= */
+
 .message-row {
   display: grid;
 
@@ -452,7 +427,6 @@ button {
 
   margin-bottom: 34px;
 }
-
 
 .message-avatar {
   width: 32px;
@@ -469,7 +443,6 @@ button {
   color: #59534c;
 }
 
-
 .assistant-message
 .message-avatar {
   background: #d97757;
@@ -477,11 +450,9 @@ button {
   color: white;
 }
 
-
 .message-main {
   min-width: 0;
 }
-
 
 .message-name {
   margin-bottom: 7px;
@@ -493,7 +464,6 @@ button {
   color: #38342f;
 }
 
-
 .message-content {
   font-size: 15px;
 
@@ -504,17 +474,14 @@ button {
   overflow-wrap: anywhere;
 }
 
-
 .message-content p {
   margin:
     0 0 14px;
 }
 
-
 .message-content p:last-child {
   margin-bottom: 0;
 }
-
 
 .message-content h1,
 .message-content h2,
@@ -525,32 +492,26 @@ button {
   line-height: 1.35;
 }
 
-
 .message-content h1 {
   font-size: 22px;
 }
-
 
 .message-content h2 {
   font-size: 19px;
 }
 
-
 .message-content h3 {
   font-size: 16px;
 }
-
 
 .message-content ul,
 .message-content ol {
   padding-left: 23px;
 }
 
-
 .message-content li {
   margin: 6px 0;
 }
-
 
 .message-content blockquote {
   margin:
@@ -566,7 +527,9 @@ button {
 }
 
 
-/* INLINE CODE */
+/* =========================================
+   INLINE CODE
+========================================= */
 
 .message-content
 :not(pre) > code {
@@ -585,7 +548,9 @@ button {
 }
 
 
-/* CODE BLOCK */
+/* =========================================
+   CODE BLOCK
+========================================= */
 
 .message-content pre {
   margin:
@@ -606,7 +571,6 @@ button {
     rgba(0, 0, 0, 0.12);
 }
 
-
 .message-content pre code {
   font-family:
     "Cascadia Code",
@@ -619,7 +583,9 @@ button {
 }
 
 
-/* TABLE */
+/* =========================================
+   TABLES
+========================================= */
 
 .message-content table {
   width: 100%;
@@ -630,7 +596,6 @@ button {
   border-collapse:
     collapse;
 }
-
 
 .message-content th,
 .message-content td {
@@ -643,15 +608,14 @@ button {
   text-align: left;
 }
 
-
 .message-content th {
   background: #efede8;
 }
 
 
-/* ============================= */
-/* THINKING */
-/* ============================= */
+/* =========================================
+   THINKING ANIMATION
+========================================= */
 
 .thinking-row {
   display: grid;
@@ -662,7 +626,6 @@ button {
   gap: 14px;
 }
 
-
 .thinking-animation {
   height: 20px;
 
@@ -671,7 +634,6 @@ button {
 
   gap: 5px;
 }
-
 
 .thinking-animation span {
   width: 6px;
@@ -686,18 +648,15 @@ button {
     1.2s infinite ease-in-out;
 }
 
-
 .thinking-animation
 span:nth-child(2) {
   animation-delay: 0.15s;
 }
 
-
 .thinking-animation
 span:nth-child(3) {
   animation-delay: 0.3s;
 }
-
 
 @keyframes thinkingPulse {
   0%,
@@ -718,9 +677,9 @@ span:nth-child(3) {
 }
 
 
-/* ============================= */
-/* WELCOME */
-/* ============================= */
+/* =========================================
+   WELCOME SCREEN
+========================================= */
 
 .welcome-screen {
   min-height: 100%;
@@ -736,7 +695,6 @@ span:nth-child(3) {
 
   text-align: center;
 }
-
 
 .welcome-logo {
   width: 48px;
@@ -759,7 +717,6 @@ span:nth-child(3) {
     rgba(217, 119, 87, 0.18);
 }
 
-
 .welcome-screen h1 {
   margin: 0;
 
@@ -778,7 +735,6 @@ span:nth-child(3) {
   color: #302d29;
 }
 
-
 .welcome-screen > p {
   max-width: 520px;
 
@@ -792,6 +748,10 @@ span:nth-child(3) {
   line-height: 1.6;
 }
 
+
+/* =========================================
+   SUGGESTION CARDS
+========================================= */
 
 .suggestion-grid {
   width: min(
@@ -808,7 +768,6 @@ span:nth-child(3) {
 
   margin-top: 36px;
 }
-
 
 .suggestion-grid button {
   min-height: 90px;
@@ -835,7 +794,6 @@ span:nth-child(3) {
     all 0.15s ease;
 }
 
-
 .suggestion-grid
 button:hover {
   border-color: #cac5bc;
@@ -850,11 +808,9 @@ button:hover {
     rgba(0, 0, 0, 0.04);
 }
 
-
 .suggestion-grid strong {
   font-size: 13px;
 }
-
 
 .suggestion-grid span {
   color: #858078;
@@ -865,9 +821,9 @@ button:hover {
 }
 
 
-/* ============================= */
-/* COMPOSER */
-/* ============================= */
+/* =========================================
+   COMPOSER
+========================================= */
 
 .composer-wrapper {
   flex-shrink: 0;
@@ -892,7 +848,6 @@ button:hover {
     );
 }
 
-
 .composer {
   width: min(
     820px,
@@ -915,7 +870,6 @@ button:hover {
     0 8px 30px
     rgba(42, 38, 33, 0.07);
 }
-
 
 .composer textarea {
   display: block;
@@ -944,11 +898,9 @@ button:hover {
   line-height: 1.5;
 }
 
-
 .composer textarea::placeholder {
   color: #a09a92;
 }
-
 
 .composer-bottom {
   display: flex;
@@ -958,13 +910,11 @@ button:hover {
     space-between;
 }
 
-
 .composer-tools {
   display: flex;
 
   gap: 3px;
 }
-
 
 .tool-button {
   width: 34px;
@@ -983,14 +933,12 @@ button:hover {
   color: #777169;
 }
 
-
 .tool-button:disabled {
   opacity: 0.5;
 
   cursor:
     not-allowed;
 }
-
 
 .send-button {
   width: 36px;
@@ -1012,7 +960,6 @@ button:hover {
     all 0.15s ease;
 }
 
-
 .send-button:hover:not(
   :disabled
 ) {
@@ -1022,40 +969,12 @@ button:hover {
     translateY(-1px);
 }
 
-
 .send-button:disabled {
   opacity: 0.25;
 
   cursor:
     not-allowed;
 }
-
-
-.send-loader {
-  width: 15px;
-  height: 15px;
-
-  border:
-    2px solid
-    rgba(255, 255, 255, 0.35);
-
-  border-top-color: white;
-
-  border-radius: 50%;
-
-  animation:
-    spinner
-    0.75s linear infinite;
-}
-
-
-@keyframes spinner {
-  to {
-    transform:
-      rotate(360deg);
-  }
-}
-
 
 .input-footer {
   margin-top: 8px;
@@ -1068,9 +987,91 @@ button:hover {
 }
 
 
-/* ============================= */
-/* RESPONSIVE */
-/* ============================= */
+/* =========================================
+   COPY + REGENERATE ACTIONS
+========================================= */
+
+.message-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 4px;
+
+  margin-top: 10px;
+
+  opacity: 0;
+
+  transition:
+    opacity 0.15s ease;
+}
+
+.message-row:hover
+.message-actions {
+  opacity: 1;
+}
+
+.message-actions:focus-within {
+  opacity: 1;
+}
+
+.message-action-button {
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+
+  padding: 0 8px;
+
+  border: none;
+
+  border-radius: 7px;
+
+  background: transparent;
+
+  color: #7b756d;
+
+  font-size: 12px;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.message-action-button:hover:not(
+  :disabled
+) {
+  background: #ebe8e2;
+
+  color: #38342f;
+}
+
+.message-action-button:disabled {
+  opacity: 0.4;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================
+   STOP GENERATION BUTTON
+========================================= */
+
+.send-button.stop-button {
+  background: #3b3834;
+
+  color: white;
+}
+
+.send-button.stop-button:hover {
+  background: #24221f;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
 
 @media (
   max-width: 900px
@@ -1080,7 +1081,6 @@ button:hover {
     grid-template-columns:
       230px 1fr;
   }
-
 
   .suggestion-grid {
     grid-template-columns:
@@ -1099,17 +1099,14 @@ button:hover {
       1fr;
   }
 
-
   .sidebar {
     display: none;
   }
-
 
   .chat-header {
     padding:
       0 15px;
   }
-
 
   .messages-container {
     width:
@@ -1118,16 +1115,18 @@ button:hover {
     padding-top: 25px;
   }
 
-
   .composer-wrapper {
     padding:
       10px 10px 12px;
   }
 
-
   .welcome-screen {
     padding:
       40px 18px 140px;
+  }
+
+  .message-actions {
+    opacity: 1;
   }
 
 }

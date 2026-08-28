@@ -1,3 +1,4 @@
+import asyncio
 import json
 
 from fastapi import (
@@ -12,11 +13,14 @@ from fastapi.responses import (
 from app.models.chat import (
     ChatRequest,
     ChatResponse,
+    RegenerateRequest,
 )
 
 from app.services.chat_service import (
     prepare_chat,
+    prepare_regeneration,
     process_chat,
+    replace_assistant_message,
     save_assistant_message,
 )
 
@@ -44,6 +48,7 @@ async def chat(
         result = await process_chat(
             conversation_id=
                 request.conversation_id,
+
             message=
                 request.message,
         )
@@ -65,6 +70,117 @@ async def chat(
         )
 
 
+async def create_stream(
+    conversation_id: str,
+    history: list[dict],
+    replace_message_id=None,
+):
+    """
+    Shared streaming logic for:
+    - new message
+    - regenerate response
+    """
+
+    full_response = ""
+
+    yield (
+        json.dumps(
+            {
+                "type": "meta",
+
+                "conversation_id":
+                    conversation_id,
+            }
+        )
+        + "\n"
+    )
+
+
+    try:
+
+        async for chunk in (
+            stream_ai_response(
+                history
+            )
+        ):
+
+            full_response += chunk
+
+            yield (
+                json.dumps(
+                    {
+                        "type":
+                            "delta",
+
+                        "content":
+                            chunk,
+                    }
+                )
+                + "\n"
+            )
+
+
+        if replace_message_id:
+
+            await replace_assistant_message(
+                replace_message_id,
+                conversation_id,
+                full_response,
+            )
+
+        else:
+
+            await save_assistant_message(
+                conversation_id,
+                full_response,
+            )
+
+
+        yield (
+            json.dumps(
+                {
+                    "type":
+                        "done"
+                }
+            )
+            + "\n"
+        )
+
+
+    except asyncio.CancelledError:
+
+        # Browser clicked Stop.
+        # Closing the HTTP stream also stops
+        # the upstream Ollama stream.
+
+        print(
+            "Generation stopped by user."
+        )
+
+        raise
+
+
+    except Exception as error:
+
+        print(
+            "Streaming error:",
+            error
+        )
+
+        yield (
+            json.dumps(
+                {
+                    "type":
+                        "error",
+
+                    "message":
+                        str(error),
+                }
+            )
+            + "\n"
+        )
+
+
 @router.post(
     "/chat/stream",
 )
@@ -80,16 +196,12 @@ async def chat_stream(
         ) = await prepare_chat(
             conversation_id=
                 request.conversation_id,
+
             message=
                 request.message,
         )
 
     except Exception as error:
-
-        print(
-            "Stream preparation error:",
-            error
-        )
 
         raise HTTPException(
             status_code=500,
@@ -97,83 +209,75 @@ async def chat_stream(
         )
 
 
-    async def generate():
+    return StreamingResponse(
+        create_stream(
+            conversation_id,
+            history,
+        ),
 
-        full_response = ""
+        media_type=
+            "application/x-ndjson",
 
-        # First tell React which
-        # conversation is being used.
-        yield (
-            json.dumps(
-                {
-                    "type": "meta",
-                    "conversation_id":
-                        conversation_id,
-                }
-            )
-            + "\n"
+        headers={
+            "Cache-Control":
+                "no-cache",
+
+            "X-Accel-Buffering":
+                "no",
+        },
+    )
+
+
+@router.post(
+    "/chat/regenerate/stream",
+)
+async def regenerate_stream(
+    request: RegenerateRequest,
+):
+
+    try:
+
+        (
+            conversation_id,
+            history,
+            assistant_message_id,
+        ) = await prepare_regeneration(
+            request.conversation_id
         )
 
-        try:
+    except ValueError as error:
 
-            async for chunk in (
-                stream_ai_response(
-                    history
-                )
-            ):
-
-                full_response += chunk
-
-                yield (
-                    json.dumps(
-                        {
-                            "type":
-                                "delta",
-                            "content":
-                                chunk,
-                        }
-                    )
-                    + "\n"
-                )
+        raise HTTPException(
+            status_code=400,
+            detail=str(error),
+        )
 
 
-            await save_assistant_message(
-                conversation_id,
-                full_response,
-            )
+    except Exception as error:
 
-
-            yield (
-                json.dumps(
-                    {
-                        "type": "done"
-                    }
-                )
-                + "\n"
-            )
-
-
-        except Exception as error:
-
-            print(
-                "Streaming error:",
-                error
-            )
-
-            yield (
-                json.dumps(
-                    {
-                        "type": "error",
-                        "message":
-                            str(error),
-                    }
-                )
-                + "\n"
-            )
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
 
 
     return StreamingResponse(
-        generate(),
+        create_stream(
+            conversation_id,
+            history,
+
+            replace_message_id=
+                assistant_message_id,
+        ),
+
         media_type=
             "application/x-ndjson",
+
+        headers={
+            "Cache-Control":
+                "no-cache",
+
+            "X-Accel-Buffering":
+                "no",
+        },
     )
