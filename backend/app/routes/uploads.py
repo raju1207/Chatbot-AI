@@ -181,17 +181,22 @@ async def image_chat_stream(
 
         try:
             async for chunk in (
-                stream_vision_response(
-                    prompt=
-                        clean_message,
+    stream_vision_response(
+        prompt=
+            clean_message,
 
-                    image_bytes=
-                        image_bytes,
+        image_bytes=
+            image_bytes,
 
-                    history=
-                        history,
-                )
-            ):
+        mime_type=(
+            image.content_type
+            or "image/jpeg"
+        ),
+
+        history=
+            history,
+    )
+):
                 full_response += chunk
 
                 yield (
